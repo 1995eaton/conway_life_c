@@ -6,6 +6,12 @@
 #include "./life.h"
 
 static inline int is_set(life_t *life, size_t x, size_t y) {
+    /* if (x == (size_t) -1) */
+    /*     x = life->grid_w - 1; */
+    /* if (y == (size_t) -1) */
+    /*     y = life->grid_h - 1; */
+    /* x %= life->grid_w; */
+    /* y %= life->grid_h; */
     if (x >= life->grid_w || y >= life->grid_h)
         return 0;
     return life->grid[y][x];

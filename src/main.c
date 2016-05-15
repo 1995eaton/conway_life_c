@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "./life.h"
+#include "./draw.h"
 
 void print_arr(life_t *life) {
     for (size_t y = 0; y < life->grid_h; y++) {
@@ -13,7 +14,7 @@ void print_arr(life_t *life) {
     }
 }
 
-void read_105(life_t *life, const char *path) {
+void read_105(life_t *life, const char *path, size_t pad) {
     FILE *fp = fopen(path, "r");
 
     size_t grid_w = 0;
@@ -36,9 +37,8 @@ void read_105(life_t *life, const char *path) {
         }
     }
 
-    size_t padding = 5;
-    grid_w += padding << 1;
-    grid_h += padding << 1;
+    grid_w += pad << 1;
+    grid_h += pad << 1;
 
     life_create(life, grid_w, grid_h);
     fseek(fp, 0, SEEK_SET);
@@ -56,7 +56,7 @@ void read_105(life_t *life, const char *path) {
             x = 0;
             ++y;
         } else {
-            *life_get(life, x + padding, y + padding) = c == '*';
+            *life_get(life, x + pad, y + pad) = c == '*';
             ++x;
         }
     }
@@ -73,7 +73,7 @@ char skip_until_char(FILE *fp, char c, char u) {
     return c;
 }
 
-void read_rle(life_t *life, const char *path) {
+void read_rle(life_t *life, const char *path, size_t pad) {
     FILE *fp = fopen(path, "r");
 
     char c;
@@ -81,7 +81,6 @@ void read_rle(life_t *life, const char *path) {
     size_t grid_h;
     int has_header = 0;
     size_t x = 0, y = 0;
-    size_t pad = 5;
 
     for (;;) {
         c = fgetc(fp);
@@ -139,20 +138,16 @@ int main(int argc, char **argv) {
 
     const char *path = argv[1];
     size_t len = strlen(path);
+    size_t pad = 50;
 
     if (len >= 4 && strcmp(path + (len - 4), ".rle") == 0) {
-        read_rle(&life, path);
+        read_rle(&life, path, pad);
     } else if (len >= 8 && strcmp(path + (len - 8), "_105.lif") == 0) {
-        read_105(&life, path);
+        read_105(&life, path, pad);
     } else {
         fprintf(stderr, "invalid file: %s\n", path);
     }
 
-    for (;;) {
-        usleep(50 * 1000);
-        printf("\x1b[0;0H\x1b[0J");
-        life_next_gen_omp(&life);
-        print_arr(&life);
-    }
+    main_loop(&life, 40);
     life_destroy(&life);
 }
